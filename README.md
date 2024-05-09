@@ -1,7 +1,7 @@
 [![Nuget](https://img.shields.io/nuget/v/Mehedi.EventBus.Kafka)](https://www.nuget.org/packages/Mehedi.EventBus.Kafka/)
 [![Nuget](https://img.shields.io/nuget/dt/Mehedi.EventBus.Kafka)](https://www.nuget.org/packages/Mehedi.EventBus.Kafka/)
 
-# Mehedi.Eventbus.Kafka
+# Mehedi.EventBus.Kafka
 EventBus implementation for Apache Kafka with .NET Core 8.
 
 ## Technologies
