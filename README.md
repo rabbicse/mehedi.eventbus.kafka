@@ -11,6 +11,9 @@ EventBus implementation for Apache Kafka with .NET Core 8.
 
 ## Prerequisites
 - net8.0
+- Confluent.Kafka (>= 2.3.0)
+- Mehedi.EventBus.Abstractions (>= 1.0.0)
+- Microsoft.Extensions.Logging.Abstractions (>= 8.0.1)
 
 ## References
 - [eShop](https://github.com/dotnet/eShop/tree/main/src/EventBus)
