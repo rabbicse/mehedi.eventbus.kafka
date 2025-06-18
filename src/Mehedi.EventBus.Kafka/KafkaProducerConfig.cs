@@ -3,18 +3,24 @@
 
 public record KafkaProducerConfig
 {
-    public KafkaProducerConfig(string kafkaConnectionString, string topicBaseName)
+    public KafkaProducerConfig(string kafkaConnectionString, string topicBaseName, string instanceId)
     {
         if (string.IsNullOrWhiteSpace(kafkaConnectionString))
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(kafkaConnectionString));
+            throw new ArgumentException("kafkaConnectionString cannot be null or whitespace.", nameof(kafkaConnectionString));
         if (string.IsNullOrWhiteSpace(topicBaseName))
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(topicBaseName));
+            throw new ArgumentException("topicBaseName cannot be null or whitespace.", nameof(topicBaseName));
+        if (string.IsNullOrWhiteSpace(instanceId))
+            throw new ArgumentException("instanceId cannot be null or whitespace.", nameof(instanceId));
 
         KafkaConnectionString = kafkaConnectionString;
         TopicName = topicBaseName;
+        InstanceId = instanceId;
     }
 
     public string KafkaConnectionString { get; }
     public string TopicName { get; }
+    public string InstanceId { get; }
+    public long MessageTimeoutMs { get; set; } = 30000; // default 30 secs
+    public long SocketTimeoutMs { get; set; } = 300000; // default 30 secs
 }
 

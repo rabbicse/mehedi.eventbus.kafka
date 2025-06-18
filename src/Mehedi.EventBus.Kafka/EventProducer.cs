@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using System.Text.Json;
 
 namespace Mehedi.EventBus.Kafka;
 
@@ -8,28 +9,25 @@ namespace Mehedi.EventBus.Kafka;
 /// Represents a Kafka event producer responsible for publishing integration events.
 /// Source: https://github.com/mizrael/SuperSafeBank/blob/master/src/SuperSafeBank.Transport.Kafka/EventProducer.cs
 /// </summary>
-public class EventProducer : IDisposable, IEventProducer
+public class EventProducer(
+        KafkaProducerConfig config,
+        ILogger<EventProducer> logger) : IDisposable, IEventProducer
 {
-    private IProducer<Guid, string> _producer;
-    private readonly KafkaProducerConfig _config;
-    private readonly ILogger<EventProducer> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EventProducer"/> class with the specified Kafka producer configuration and logger.
-    /// </summary>
-    /// <param name="config">The Kafka producer configuration.</param>
-    /// <param name="logger">The logger instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> or <paramref name="logger"/> is null.</exception>
-    public EventProducer(KafkaProducerConfig config, ILogger<EventProducer> logger)
+    private readonly KafkaProducerConfig _config = config;
+    private readonly ILogger<EventProducer> _logger = logger;
+    private IProducer<Guid, string> _producer = new ProducerBuilder<Guid, string>(new ProducerConfig
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _config = config ?? throw new ArgumentNullException(nameof(config));
-
-        var producerConfig = new ProducerConfig { BootstrapServers = config.KafkaConnectionString };
-        var producerBuilder = new ProducerBuilder<Guid, string>(producerConfig);
-        producerBuilder.SetKeySerializer(new KeySerializer<Guid>());
-        _producer = producerBuilder.Build();
-    }
+        BootstrapServers = config.KafkaConnectionString,
+        Acks = Acks.All,
+        MessageTimeoutMs = 5000,
+        SocketTimeoutMs = 6000,
+        Debug = "msg,broker,protocol"
+    }).SetKeySerializer(new KeySerializer<Guid>())
+        .SetErrorHandler((_, e) => logger.LogError("Producer error: {Reason}", e.Reason))
+        .SetLogHandler((_, m) => logger.Log(
+                m.Level switch { SyslogLevel.Error => LogLevel.Error, _ => LogLevel.Information },
+                "Kafka producer: {Message}", m.Message))
+        .Build();
 
     /// <summary>
     /// Publishes the specified integration event asynchronously.
@@ -43,20 +41,26 @@ public class EventProducer : IDisposable, IEventProducer
         ArgumentNullException.ThrowIfNull(@event);
 
         _logger.LogInformation("publishing event {EventId} ...", @event.Id);
-        var eventType = @event.GetType();
+        //var eventType = @event.GetType();
 
-        var serialized = System.Text.Json.JsonSerializer.Serialize(@event, eventType);
+        //var serialized = System.Text.Json.JsonSerializer.Serialize(@event, eventType);
+
+        var json = JsonSerializer.Serialize(@event, @event.GetType(), new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
 
         var headers = new Headers
             {
                 {"id", Encoding.UTF8.GetBytes(@event.Id.ToString())},
-                {"type", Encoding.UTF8.GetBytes(eventType.AssemblyQualifiedName)}
+                {"sender", Encoding.UTF8.GetBytes(_config.InstanceId)},
+                {"type", Encoding.UTF8.GetBytes(@event.GetType().AssemblyQualifiedName!)}
             };
 
         var message = new Message<Guid, string>()
         {
             Key = @event.Id,
-            Value = serialized,
+            Value = json,
             Headers = headers
         };
 

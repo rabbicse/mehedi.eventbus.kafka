@@ -9,37 +9,27 @@ namespace Mehedi.EventBus.Kafka;
 /// Represents a Kafka event consumer responsible for consuming integration events.
 /// Source: https://github.com/mizrael/SuperSafeBank/blob/master/src/SuperSafeBank.Transport.Kafka/KafkaEventConsumer.cs
 /// </summary>
-public class EventConsumer : IDisposable, IEventConsumer
+public class EventConsumer(
+    EventsConsumerConfig config,
+    ILogger<EventConsumer> logger) : IDisposable, IEventConsumer
 {
-    private IConsumer<Guid, string> _consumer;
-    private readonly ILogger<EventConsumer> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EventConsumer"/> class with the specified consumer configuration and logger.
-    /// </summary>
-    /// <param name="config">The consumer configuration.</param>
-    /// <param name="logger">The logger instance.</param>
-    public EventConsumer(EventsConsumerConfig config, ILogger<EventConsumer> logger)
+    private readonly EventsConsumerConfig _config = config;
+    private readonly ILogger<EventConsumer> _logger = logger;
+    private readonly IConsumer<Guid, string> _consumer = new ConsumerBuilder<Guid, string>(new ConsumerConfig
     {
-        _logger = logger;
-
-        var consumerConfig = new ConsumerConfig
-        {
-            GroupId = config.ConsumerGroup,
-            BootstrapServers = config.KafkaConnectionString,
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnablePartitionEof = true
-        };
-
-        var consumerBuilder = new ConsumerBuilder<Guid, string>(consumerConfig);
-        var keyDeserializerFactory = new KeyDeserializerFactory();
-        consumerBuilder.SetKeyDeserializer(keyDeserializerFactory.Create<Guid>());
-
-        _consumer = consumerBuilder.Build();
-
-        _consumer.Subscribe(config.TopicName);
-    }
-    ~EventConsumer() => Dispose(false);
+        GroupId = config.ConsumerGroup,
+        BootstrapServers = config.KafkaConnectionString,
+        AutoOffsetReset = AutoOffsetReset.Earliest,
+        EnablePartitionEof = true,
+        EnableAutoCommit = true,
+        AllowAutoCreateTopics = true
+    })
+    .SetKeyDeserializer(new KeyDeserializerFactory().Create<Guid>())
+    .SetErrorHandler((_, e) => logger.LogError($"Kafka consumer error: {e.Reason}"))
+    .SetLogHandler((_, m) => logger.Log(
+        m.Level switch { SyslogLevel.Error => LogLevel.Error, _ => LogLevel.Information },
+        $"Kafka log: {m.Message}"))
+    .Build();
 
     /// <summary>
     /// Starts consuming integration events asynchronously.
@@ -50,6 +40,8 @@ public class EventConsumer : IDisposable, IEventConsumer
     {
         return Task.Run(async () =>
         {
+            _consumer.Subscribe(_config.TopicName);
+
             var topics = string.Join(",", _consumer.Subscription);
             _logger.LogInformation("started Kafka consumer {ConsumerName} on {ConsumerTopic}", _consumer.Name, topics);
 
@@ -59,7 +51,18 @@ public class EventConsumer : IDisposable, IEventConsumer
                 {
                     var cr = _consumer.Consume(cancellationToken);
                     if (cr.IsPartitionEOF)
+                    {
+                        _logger.LogInformation($"IsPartitionEOF => {cr.IsPartitionEOF}");
                         continue;
+                    }
+
+                    var senderIdHeader = cr.Message.Headers.FirstOrDefault(h => h.Key == "sender");
+                    var senderId = senderIdHeader != null ? Encoding.UTF8.GetString(senderIdHeader.GetValueBytes()) : "";
+
+                    if (senderId.Equals(_config.InstanceId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue; // Skip self-published message
+                    }
 
                     var messageTypeHeader = cr.Message.Headers.First(h => h.Key == "type");
                     var eventTypeName = Encoding.UTF8.GetString(messageTypeHeader.GetValueBytes());
@@ -118,7 +121,8 @@ public class EventConsumer : IDisposable, IEventConsumer
     }
 
     #region IDisposable
-    private bool _disposed = false;
+    private volatile bool _disposed;
+    ~EventConsumer() => Dispose(false);
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed) return;
@@ -127,7 +131,6 @@ public class EventConsumer : IDisposable, IEventConsumer
         {
             // Free unmanaged resources
             _consumer?.Dispose();
-            _consumer = null;
         }
 
         _disposed = true;
