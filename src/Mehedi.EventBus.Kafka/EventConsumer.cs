@@ -32,6 +32,17 @@ public class EventConsumer(
     .Build();
 
     /// <summary>
+    /// Subscribe to topic
+    /// </summary>
+    /// <param name="topicName"></param>
+    /// <returns></returns>
+    public async Task<bool> Subscribe(string topicName)
+    {
+        _consumer.Subscribe(topicName);
+        return await Task.FromResult(true);
+    }
+
+    /// <summary>
     /// Starts consuming integration events asynchronously.
     /// </summary>
     /// <param name="cancellationToken">Optional. The cancellation token.</param>
@@ -39,9 +50,7 @@ public class EventConsumer(
     public Task StartConsumeAsync(CancellationToken cancellationToken = default)
     {
         return Task.Run(async () =>
-        {
-            _consumer.Subscribe(_config.TopicName);
-
+        {            
             var topics = string.Join(",", _consumer.Subscription);
             _logger.LogInformation("started Kafka consumer {ConsumerName} on {ConsumerTopic}", _consumer.Name, topics);
 

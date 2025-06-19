@@ -20,7 +20,7 @@ public record KafkaProducerConfig
     public string KafkaConnectionString { get; }
     public string TopicName { get; }
     public string InstanceId { get; }
-    public long MessageTimeoutMs { get; set; } = 30000; // default 30 secs
-    public long SocketTimeoutMs { get; set; } = 300000; // default 30 secs
+    public int MessageTimeoutMs { get; set; } = 30000; // default 30 secs
+    public int SocketTimeoutMs { get; set; } = 300000; // default 30 secs
 }
 

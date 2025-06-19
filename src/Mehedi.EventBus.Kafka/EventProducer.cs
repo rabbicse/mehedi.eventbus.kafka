@@ -19,8 +19,8 @@ public class EventProducer(
     {
         BootstrapServers = config.KafkaConnectionString,
         Acks = Acks.All,
-        MessageTimeoutMs = 5000,
-        SocketTimeoutMs = 6000,
+        MessageTimeoutMs = config.MessageTimeoutMs,
+        SocketTimeoutMs = config.SocketTimeoutMs,
         Debug = "msg,broker,protocol"
     }).SetKeySerializer(new KeySerializer<Guid>())
         .SetErrorHandler((_, e) => logger.LogError("Producer error: {Reason}", e.Reason))
@@ -75,6 +75,5 @@ public class EventProducer(
     public void Dispose()
     {
         _producer?.Dispose();
-        _producer = null;
     }
 }
