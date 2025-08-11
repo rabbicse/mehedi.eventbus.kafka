@@ -9,12 +9,12 @@ namespace Mehedi.EventBus.Kafka;
 /// Represents a Kafka event producer responsible for publishing integration events.
 /// Source: https://github.com/mizrael/SuperSafeBank/blob/master/src/SuperSafeBank.Transport.Kafka/EventProducer.cs
 /// </summary>
-public class EventProducer(
+public class KafkaEventProducer(
         KafkaProducerConfig config,
-        ILogger<EventProducer> logger) : IDisposable, IEventProducer
+        ILogger<KafkaEventProducer> logger) : IDisposable, IEventProducer
 {
     private readonly KafkaProducerConfig _config = config;
-    private readonly ILogger<EventProducer> _logger = logger;
+    private readonly ILogger<KafkaEventProducer> _logger = logger;
     private IProducer<Guid, string> _producer = new ProducerBuilder<Guid, string>(new ProducerConfig
     {
         BootstrapServers = config.KafkaConnectionString,
