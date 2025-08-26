@@ -5,8 +5,8 @@ on:
   push:
     branches: 
       - master
-    #paths:
-    #  - 'src/Mehedi.EventBus.Kafka/**'
+    paths:
+      - 'src/Mehedi.EventBus.Kafka/**'
 
   workflow_run:
     # ✅ This will trigger the publish workflow only after the "Build" workflow completes
