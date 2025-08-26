@@ -8,6 +8,7 @@
     <Authors>Md Mehedi Hasan</Authors>
     <Description>EventBus implementation for Apache Kafka with .NET Core 8.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/rabbicse/mehedi.eventbus.kafka</RepositoryUrl>
   </PropertyGroup>
 
