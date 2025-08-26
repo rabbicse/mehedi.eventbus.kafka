@@ -1,4 +1,5 @@
-name: publish Mehedi.EventBus.Kafka to nuget
+name: 🚀 Publish Mehedi.EventBus.Kafka to NuGet
+
 on:
   workflow_dispatch:
   push:
@@ -6,30 +7,39 @@ on:
       - master
     paths:
       - 'src/Mehedi.EventBus.Kafka/**'
+
+  workflow_run:
+    # ✅ This will trigger the publish workflow only after the "Build" workflow completes
+    workflows: ["Build"] # Name of the build workflow (must match exactly)
+    types:
+      - completed # Trigger when the Build workflow finishes (success or failure)
       
 jobs:
   publish:
-    name: list on nuget
+    name: 📦 Publish to NuGet
+    # ✅ Runs only if the Build workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
 
       # Required for a specific dotnet version that doesn't come with ubuntu-latest / windows-latest
       # Visit bit.ly/2synnZl to see the list of SDKs that are pre-installed with ubuntu-latest / windows-latest
-      - name: Setup dotnet
+      - name: ⚙️ Setup .NET SDK
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 8.0.x
 
       # Increment the version
-      - name: Bump build version
+      - name: 🔢 Bump build version
         id: bump
         uses: vers-one/dotnet-project-version-updater@v1.6
         with:
           file: "src/Mehedi.EventBus.Kafka/Mehedi.EventBus.Kafka.csproj"
           version: bump-build
 
-      - run: |
+      - name: ✅ Commit updated version
+        run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git config --global credential.helper store
@@ -39,7 +49,7 @@ jobs:
           git push 
       
       # Publish
-      - name: publish on version change
+      - name: 📤 Publish to NuGet
         id: publish_nuget
         uses: brandedoutcast/publish-nuget@v2
         with:
