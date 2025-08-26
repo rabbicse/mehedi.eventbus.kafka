@@ -43,7 +43,7 @@ public class EventConsumer(
     }
 
     /// <summary>
-    /// Starts consuming integration events asynchronously.
+    /// Start consuming integration events asynchronously.
     /// </summary>
     /// <param name="cancellationToken">Optional. The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
