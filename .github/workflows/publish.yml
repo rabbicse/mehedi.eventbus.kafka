@@ -10,7 +10,7 @@ on:
 
   workflow_run:
     # ✅ This will trigger the publish workflow only after the "Build" workflow completes
-    workflows: ["Build"] # Name of the build workflow (must match exactly)
+    workflows: ["Build and Test"] # Name of the build workflow (must match exactly)
     types:
       - completed # Trigger when the Build workflow finishes (success or failure)
       
