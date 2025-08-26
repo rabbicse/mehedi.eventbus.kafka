@@ -56,7 +56,6 @@ jobs:
             -o ./artifacts \
             /p:IncludeSymbols=true \
             /p:IncludeSource=true \
-            /p:PackageLicenseExpression=MIT \
             /p:PackageLicenseFile=LICENSE
       
       # 📤 Push NuGet package
