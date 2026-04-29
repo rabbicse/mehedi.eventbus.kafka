@@ -9,12 +9,12 @@ namespace Mehedi.EventBus.Kafka;
 /// Represents a Kafka event consumer responsible for consuming integration events.
 /// Source: https://github.com/mizrael/SuperSafeBank/blob/master/src/SuperSafeBank.Transport.Kafka/KafkaEventConsumer.cs
 /// </summary>
-public class EventConsumer(
-    EventsConsumerConfig config,
-    ILogger<EventConsumer> logger) : IDisposable, IEventConsumer
+public class KafkaEventConsumer(
+    KafkaConsumerConfig config,
+    ILogger<KafkaEventConsumer> logger) : IDisposable, IEventConsumer
 {
-    private readonly EventsConsumerConfig _config = config;
-    private readonly ILogger<EventConsumer> _logger = logger;
+    private readonly KafkaConsumerConfig _config = config;
+    private readonly ILogger<KafkaEventConsumer> _logger = logger;
     private readonly IConsumer<Guid, string> _consumer = new ConsumerBuilder<Guid, string>(new ConsumerConfig
     {
         GroupId = config.ConsumerGroup,
@@ -25,10 +25,10 @@ public class EventConsumer(
         AllowAutoCreateTopics = true
     })
     .SetKeyDeserializer(new KeyDeserializerFactory().Create<Guid>())
-    .SetErrorHandler((_, e) => logger.LogError($"Kafka consumer error: {e.Reason}"))
+    .SetErrorHandler((_, e) => logger.LogError($"Kafka Consumer: Error => {e.Reason}"))
     .SetLogHandler((_, m) => logger.Log(
         m.Level switch { SyslogLevel.Error => LogLevel.Error, _ => LogLevel.Information },
-        $"Kafka log: {m.Message}"))
+        $"Kafka Consumer: {m.Message}"))
     .Build();
 
     /// <summary>
@@ -52,7 +52,7 @@ public class EventConsumer(
         return Task.Run(async () =>
         {            
             var topics = string.Join(",", _consumer.Subscription);
-            _logger.LogInformation("started Kafka consumer {ConsumerName} on {ConsumerTopic}", _consumer.Name, topics);
+            _logger.LogInformation($"Kafka Consumer: Started Kafka consumer {_consumer.Name} on {topics}");
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -61,7 +61,7 @@ public class EventConsumer(
                     var cr = _consumer.Consume(cancellationToken);
                     if (cr.IsPartitionEOF)
                     {
-                        _logger.LogInformation($"IsPartitionEOF => {cr.IsPartitionEOF}");
+                        _logger.LogInformation($"Kafka Consumer: IsPartitionEOF => {cr.IsPartitionEOF}");
                         continue;
                     }
 
@@ -84,12 +84,12 @@ public class EventConsumer(
                 }
                 catch (OperationCanceledException ex)
                 {
-                    _logger.LogWarning(ex, "consumer {ConsumerName} on {ConsumerTopic} was stopped: {StopReason}", _consumer.Name, topics, ex.Message);
+                    _logger.LogWarning(ex, $"Kafka Consumer: Consumer {_consumer.Name} on {topics} was stopped: {ex.Message}");
                     OnConsumerStopped();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"an exception has occurred while consuming a message: {ex.Message}");
+                    _logger.LogError(ex, $"Kafka Consumer: An exception has occurred while consuming a message: {ex.Message}");
                     OnExceptionThrown(ex);
                 }
             }
@@ -101,7 +101,7 @@ public class EventConsumer(
     /// </summary>
     public event EventReceivedHandler EventReceived;
 
-    protected virtual Task OnEventReceived(IntegrationEvent @event)
+    protected virtual Task? OnEventReceived(IntegrationEvent @event)
     {
         var handler = EventReceived;
         return handler?.Invoke(this, @event);
@@ -131,7 +131,7 @@ public class EventConsumer(
 
     #region IDisposable
     private volatile bool _disposed;
-    ~EventConsumer() => Dispose(false);
+    ~KafkaEventConsumer() => Dispose(false);
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed) return;

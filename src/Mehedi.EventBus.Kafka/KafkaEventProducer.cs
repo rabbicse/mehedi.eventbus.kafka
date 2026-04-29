@@ -23,10 +23,10 @@ public class KafkaEventProducer(
         SocketTimeoutMs = config.SocketTimeoutMs,
         Debug = "msg,broker,protocol"
     }).SetKeySerializer(new KeySerializer<Guid>())
-        .SetErrorHandler((_, e) => logger.LogError("Producer error: {Reason}", e.Reason))
+        .SetErrorHandler((_, e) => logger.LogError($"Kafka Producer: Error => {e.Reason}"))
         .SetLogHandler((_, m) => logger.Log(
                 m.Level switch { SyslogLevel.Error => LogLevel.Error, _ => LogLevel.Information },
-                "Kafka producer: {Message}", m.Message))
+                $"Kafka Producer: {m.Message}"))
         .Build();
 
     /// <summary>
@@ -40,7 +40,7 @@ public class KafkaEventProducer(
     {
         ArgumentNullException.ThrowIfNull(@event);
 
-        _logger.LogInformation("publishing event {EventId} ...", @event.Id);
+        _logger.LogInformation($"Kafka Producer: Publishing event with ID => {@event.Id} ...");
         //var eventType = @event.GetType();
 
         //var serialized = System.Text.Json.JsonSerializer.Serialize(@event, eventType);
@@ -65,7 +65,7 @@ public class KafkaEventProducer(
         };
 
         var result = await _producer.ProduceAsync(_config.TopicName, message, cancellationToken);
-        _logger.LogInformation($"Publish event status of {@event.Id}: {result.Message.Value}");
+        _logger.LogInformation($"Kafka Producer: Publish event status of {@event.Id} => {result.Message.Value}");
         return result.Status == PersistenceStatus.Persisted;
     }
 

@@ -1,13 +1,13 @@
 ﻿namespace Mehedi.EventBus.Kafka;
 
-public record EventsConsumerConfig
+public record KafkaConsumerConfig
 {
     public string KafkaConnectionString { get; }
     public string TopicName { get; }
     public string ConsumerGroup { get; }
     public string InstanceId { get; }
 
-    public EventsConsumerConfig(
+    public KafkaConsumerConfig(
         string kafkaConnectionString,
         string topicName,
         string consumerGroup,
