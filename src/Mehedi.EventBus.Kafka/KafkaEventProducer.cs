@@ -36,7 +36,7 @@ public partial class KafkaEventProducer(
     /// <param name="cancellationToken">Optional. The cancellation token.</param>
     /// <returns>True when the broker acknowledged (persisted) the message.</returns>
     /// <remarks>
-    /// The message key is <see cref="IntegrationEvent.PartitionKey"/>, so events of one aggregate keep their order
+    /// The message key is <see cref="IntegrationEvent.GetPartitionKey"/>, so events of one aggregate keep their order
     /// when the event overrides it. Headers carry the stable <see cref="KafkaHeaders.EventName"/> that consumers
     /// route on, plus the legacy assembly-qualified <see cref="KafkaHeaders.ClrType"/>.
     /// </remarks>
@@ -48,7 +48,7 @@ public partial class KafkaEventProducer(
 
         var message = new Message<Guid, string>
         {
-            Key = @event.PartitionKey,
+            Key = @event.GetPartitionKey(),
             Value = IntegrationEventSerializer.Serialize(@event),
             Headers = new Headers
             {

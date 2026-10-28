@@ -3,7 +3,7 @@ namespace Mehedi.EventBus.Kafka.Tests;
 [IntegrationEventName("test.customer-created.v1")]
 public sealed record CustomerCreated(Guid CustomerId, string Name) : IntegrationEvent
 {
-    public override Guid PartitionKey => CustomerId;
+    public override Guid GetPartitionKey() => CustomerId;
 }
 
 /// <summary>Same wire name, different class: what a second service would declare.</summary>

@@ -28,4 +28,4 @@ jobs:
         # See https://josh-ops.com/posts/github-code-coverage/
         # Add coverlet.collector nuget package to test project - 'dotnet add <TestProject.cspoj> package coverlet
       - name: ✅ Test
-        run: dotnet test --no-restore --no-build --verbosity normal
+        run: dotnet test --configuration Release --no-restore --no-build --verbosity normal --logger GitHubActions

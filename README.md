@@ -31,7 +31,7 @@ Every message carries these headers:
 | `type` | assembly-qualified .NET type (for consumers older than 1.1) |
 | `id`, `sender`, `content-type` | event id, producer `instanceId`, `application/json` |
 
-The message key is `IntegrationEvent.PartitionKey`. Override it with the aggregate id to keep one aggregate's events in order.
+The message key is `IntegrationEvent.GetPartitionKey()`. Override it with the aggregate id to keep one aggregate's events in order.
 The producer uses `acks=all` and idempotence, so its own retries cause neither duplicates nor reordering.
 
 ## Consume events
@@ -72,7 +72,7 @@ Messages from a partition are handled one at a time, in order. Use more partitio
 ## Upgrading from 1.0.x
 
 - Nothing breaks: `KafkaEventProducer`, `KafkaEventConsumer` and the config records keep their signatures.
-- The producer adds the `event-name` and `content-type` headers. Its key is now `PartitionKey`, which still defaults to the event id.
+- The producer adds the `event-name` and `content-type` headers. Its key is now `GetPartitionKey()`, which still defaults to the event id.
 - librdkafka debug logging is now off by default. Set `KafkaProducerConfig.Debug = "msg,broker"` to turn it back on.
 - `KafkaEventConsumer` now reads camelCase payloads correctly, and skips messages whose .NET type it can't load instead of throwing.
 
