@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.12</Version>
+    <Version>1.1.0</Version>
     <Authors>Md Mehedi Hasan</Authors>
-    <Description>EventBus implementation for Apache Kafka with .NET Core 8.</Description>
+    <Description>EventBus implementation for Apache Kafka: an idempotent producer and hosted consumers with typed handlers, retries and a dead-letter topic.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/rabbicse/mehedi.eventbus.kafka</RepositoryUrl>
@@ -20,12 +20,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Mehedi.EventBus.Kafka.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="../../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" Version="2.14.0" />
-    <PackageReference Include="Mehedi.EventBus.Abstractions" Version="1.0.1" />
+    <PackageReference Include="Mehedi.EventBus.Abstractions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
   </ItemGroup>
 
