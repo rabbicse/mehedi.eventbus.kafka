@@ -1,4 +1,4 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using System.Runtime.Serialization;
 using System.Text;
@@ -7,6 +7,8 @@ namespace Mehedi.EventBus.Kafka;
 
 /// <summary>
 /// Represents a Kafka event consumer responsible for consuming integration events.
+/// For new code prefer <c>services.AddKafkaConsumer(...).AddHandler&lt;TEvent, THandler&gt;()</c>, which adds
+/// at-least-once delivery, retries and a dead-letter topic, and does not need the producer's .NET types.
 /// Source: https://github.com/mizrael/SuperSafeBank/blob/master/src/SuperSafeBank.Transport.Kafka/KafkaEventConsumer.cs
 /// </summary>
 public class KafkaEventConsumer(
@@ -73,12 +75,20 @@ public class KafkaEventConsumer(
                         continue; // Skip self-published message
                     }
 
-                    var messageTypeHeader = cr.Message.Headers.First(h => h.Key == "type");
-                    var eventTypeName = Encoding.UTF8.GetString(messageTypeHeader.GetValueBytes());
-                    var eventType = Type.GetType(eventTypeName);
-                    var @event = System.Text.Json.JsonSerializer.Deserialize(cr.Message.Value, eventType) as IntegrationEvent;
+                    var messageTypeHeader = cr.Message.Headers.FirstOrDefault(h => h.Key == KafkaHeaders.ClrType);
+                    var eventTypeName = messageTypeHeader is null ? null : Encoding.UTF8.GetString(messageTypeHeader.GetValueBytes());
+                    var eventType = eventTypeName is null ? null : Type.GetType(eventTypeName);
+                    if (eventType is null)
+                    {
+                        // The producer's contract type is not loaded in this process. Use AddKafkaConsumer with
+                        // typed handlers to consume events across services.
+                        _logger.LogWarning("Kafka Consumer: skipped a message of unknown type {EventType}", eventTypeName);
+                        continue;
+                    }
+
+                    var @event = System.Text.Json.JsonSerializer.Deserialize(cr.Message.Value, eventType, IntegrationEventSerializer.Options) as IntegrationEvent;
                     if (null == @event)
-                        throw new SerializationException($"unable to deserialize event {eventTypeName} : {cr.Message.Value}");
+                        throw new SerializationException($"unable to deserialize event {eventTypeName}");
 
                     await OnEventReceived(@event);
                 }

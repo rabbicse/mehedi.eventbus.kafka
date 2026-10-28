@@ -9,12 +9,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DFA694E5-1E5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mehedi.EventBus.Kafka.Tests", "tests\Mehedi.EventBus.Kafka.Tests\Mehedi.EventBus.Kafka.Tests.csproj", "{1E40E7CA-ACEC-4773-9719-661B8F417DA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1E40E7CA-ACEC-4773-9719-661B8F417DA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E40E7CA-ACEC-4773-9719-661B8F417DA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E40E7CA-ACEC-4773-9719-661B8F417DA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E40E7CA-ACEC-4773-9719-661B8F417DA4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{47E89126-362B-4FE1-96CE-1A6D15B3DE02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{47E89126-362B-4FE1-96CE-1A6D15B3DE02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47E89126-362B-4FE1-96CE-1A6D15B3DE02}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -24,6 +30,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{1E40E7CA-ACEC-4773-9719-661B8F417DA4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{47E89126-362B-4FE1-96CE-1A6D15B3DE02} = {DFA694E5-1E54-4574-93E8-702738812C59}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
